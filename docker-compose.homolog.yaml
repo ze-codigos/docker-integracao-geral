@@ -1,0 +1,149 @@
+services:
+  # ──────────────────────────────────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ──────────────────────────────────────────────────────────────────────
+  db:
+    container_name: geral-db.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  clickhouse:
+    container_name: geral-clickhouse.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  mongodb:
+    container_name: geral-mongodb.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  # ──────────────────────────────────────────────────────────────────────
+  # PASSHUB SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  emissor_auth:
+    container_name: geral-emissor-auth.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  rodobus:
+    container_name: geral-rodobus.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  emissor_checkout_api:
+    container_name: geral-checkout.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  heroseguros:
+    container_name: geral-heroseguros.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  emissor_checkout_front:
+    container_name: geral-checkout-front.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  gerenciador_emissor:
+    container_name: geral-gerenciador-emissor.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  emissor_front:
+    container_name: geral-emissor-front.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  nexus:
+    container_name: geral-nexus.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  ticket_delivery:
+    container_name: geral-ticket-delivery.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  search_flights_go:
+    container_name: geral-search-flights.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  # ──────────────────────────────────────────────────────────────────────
+  # BOT SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  bot_agente:
+    container_name: geral-bot-agente.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  bot_wpp_api:
+    container_name: geral-bot-wpp-api.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  bot_gerador_imagem:
+    container_name: geral-bot-gerador-imagem.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  bot_memoshar:
+    container_name: geral-bot-memoshar.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog
+
+  # bot_memolite:
+  #   container_name: geral-bot-memolite.homolog
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #     - .env.homolog
+
+  # bot_codigo_convite:
+  #   container_name: geral-bot-codigo-convite.homolog
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #     - .env.homolog
+
+  bot_alertas_v2:
+    container_name: geral-bot-alertas.homolog
+    env_file:
+      - .env
+      - .env.dev
+      - .env.homolog

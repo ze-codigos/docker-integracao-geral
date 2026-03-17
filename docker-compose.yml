@@ -1,0 +1,354 @@
+networks:
+  emissor-network:
+    driver: bridge
+
+services:
+  # ──────────────────────────────────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ──────────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15-alpine
+    container_name: geral-db.dev
+    env_file:
+      - .env
+      - .env.dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-db/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./init-db/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - emissor-network
+    restart: unless-stopped
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.9-alpine
+    container_name: geral-clickhouse.dev
+    networks:
+      - emissor-network
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    env_file:
+      - .env
+      - .env.dev
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    mem_limit: 4g
+    volumes:
+      - ./init-db/clickhouse-schema.sql:/docker-entrypoint-initdb.d/clickhouse-schema.sql
+      - clickhouse_data:/var/lib/clickhouse
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8123/ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  mongodb:
+    image: mongo:6.0
+    container_name: geral-mongodb.dev
+    ports:
+      - "27017:27017"
+    env_file:
+      - .env
+      - .env.dev
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-senhadobd}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - emissor-network
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────────────────────────────
+  # PASSHUB SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  emissor_auth:
+    build:
+      context: ../passhub/EmissorAuth
+      dockerfile: Dockerfile
+    container_name: geral-emissor-auth.dev
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - ../passhub/EmissorAuth/firebase-credentials.json:/app/firebase-credentials.json:ro
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "3003:4000"
+    depends_on:
+      - db
+
+  rodobus:
+    build:
+      context: ../passhub/rodobus
+      dockerfile: Dockerfile
+    container_name: geral-rodobus.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8001:8080"
+    depends_on:
+      - db
+
+  emissor_checkout_api:
+    build:
+      context: ../passhub/EmissorCheckout
+      dockerfile: Dockerfile
+    container_name: geral-checkout.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8083:8080"
+    depends_on:
+      - db
+
+  heroseguros:
+    build:
+      context: ../passhub/HeroSeguros
+      dockerfile: Dockerfile
+    container_name: geral-heroseguros.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8086:8080"
+
+  emissor_checkout_front:
+    build:
+      context: ../passhub/EmissorCheckoutFront
+      dockerfile: Dockerfile
+    container_name: geral-checkout-front.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "5172:3000"
+    depends_on:
+      - emissor_checkout_api
+
+  gerenciador_emissor:
+    build:
+      context: ../passhub/EmissorGerencia
+      dockerfile: Dockerfile
+    container_name: geral-gerenciador-emissor.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8085:8080"
+    depends_on:
+      - db
+
+  emissor_front:
+    build:
+      context: ../passhub/EmissorFront
+      dockerfile: Dockerfile
+    container_name: geral-emissor-front.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "5173:5173"
+    depends_on:
+      - emissor_auth
+      - emissor_checkout_api
+
+  nexus:
+    build:
+      context: ../passhub/nexus
+      dockerfile: Dockerfile
+    container_name: geral-nexus.dev
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - ../passhub/nexus:/app
+      - ./.env.empty:/app/.env:ro
+    networks:
+      - emissor-network
+    ports:
+      - "8084:8080"
+    depends_on:
+      - db
+
+  ticket_delivery:
+    build:
+      context: ../passhub/ticket-delivery
+      dockerfile: Dockerfile
+    container_name: geral-ticket-delivery.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8002:8080"
+    depends_on:
+      - db
+
+  search_flights_go:
+    build:
+      context: ../passhub/SearchFlightsGo
+      dockerfile: Dockerfile
+    container_name: geral-search-flights.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8089:8080"
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+
+  # ──────────────────────────────────────────────────────────────────────
+  # BOT SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  bot_agente:
+    build:
+      context: ../bot/agente
+      dockerfile: Dockerfile
+    container_name: geral-bot-agente.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8079:8080"
+    depends_on:
+      - db
+      - bot_gerador_imagem
+      - bot_memoshar
+
+  bot_wpp_api:
+    build:
+      context: ../bot/oficial-wpp-api
+      dockerfile: Dockerfile
+    container_name: geral-bot-wpp-api.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bot_agente
+
+  bot_gerador_imagem:
+    build:
+      context: ../bot/gerador_imagem
+      dockerfile: Dockerfile
+    container_name: geral-bot-gerador-imagem.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8039:8080"
+    depends_on:
+      - db
+
+  bot_memoshar:
+    build:
+      context: ../bot/memoShar
+      dockerfile: Dockerfile
+    container_name: geral-bot-memoshar.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8081:8080"
+    depends_on:
+      - mongodb
+
+  # bot_memolite:
+  #   build:
+  #     context: ../bot/memoLite
+  #     dockerfile: Dockerfile
+  #   container_name: geral-bot-memolite.dev
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #   restart: unless-stopped
+  #   networks:
+  #     - emissor-network
+  #   ports:
+  #     - "8082:8080"
+  #   depends_on:
+  #     - mongodb
+
+  # bot_codigo_convite:
+  #   build:
+  #     context: ../bot/codigoConvite
+  #     dockerfile: Dockerfile
+  #   container_name: geral-bot-codigo-convite.dev
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #   restart: unless-stopped
+  #   networks:
+  #     - emissor-network
+  #   ports:
+  #     - "8087:8080"
+
+  bot_alertas_v2:
+    build:
+      context: ../bot/alertas_v2
+      dockerfile: Dockerfile
+    container_name: geral-bot-alertas.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8088:8080"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  clickhouse_data:
+  mongo_data:

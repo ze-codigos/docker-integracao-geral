@@ -1,0 +1,149 @@
+services:
+  # ──────────────────────────────────────────────────────────────────────
+  # INFRASTRUCTURE
+  # ──────────────────────────────────────────────────────────────────────
+  db:
+    container_name: geral-db.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  clickhouse:
+    container_name: geral-clickhouse.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  mongodb:
+    container_name: geral-mongodb.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  # ──────────────────────────────────────────────────────────────────────
+  # PASSHUB SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  emissor_auth:
+    container_name: geral-emissor-auth.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  rodobus:
+    container_name: geral-rodobus.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  emissor_checkout_api:
+    container_name: geral-checkout.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  heroseguros:
+    container_name: geral-heroseguros.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  emissor_checkout_front:
+    container_name: geral-checkout-front.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  gerenciador_emissor:
+    container_name: geral-gerenciador-emissor.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  emissor_front:
+    container_name: geral-emissor-front.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  nexus:
+    container_name: geral-nexus.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  ticket_delivery:
+    container_name: geral-ticket-delivery.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  search_flights_go:
+    container_name: geral-search-flights.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  # ──────────────────────────────────────────────────────────────────────
+  # BOT SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  bot_agente:
+    container_name: geral-bot-agente.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  bot_wpp_api:
+    container_name: geral-bot-wpp-api.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  bot_gerador_imagem:
+    container_name: geral-bot-gerador-imagem.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  bot_memoshar:
+    container_name: geral-bot-memoshar.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
+
+  # bot_memolite:
+  #   container_name: geral-bot-memolite.prod
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #     - .env.prod
+
+  # bot_codigo_convite:
+  #   container_name: geral-bot-codigo-convite.prod
+  #   env_file:
+  #     - .env
+  #     - .env.dev
+  #     - .env.prod
+
+  bot_alertas_v2:
+    container_name: geral-bot-alertas.prod
+    env_file:
+      - .env
+      - .env.dev
+      - .env.prod
