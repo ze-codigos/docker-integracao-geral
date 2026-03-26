@@ -1,6 +1,10 @@
 .env
 .env.prod
 .env.local
+.env.backup
+firebase-credentials-wpp.json
+gcs-credentials.json
+secrets/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
