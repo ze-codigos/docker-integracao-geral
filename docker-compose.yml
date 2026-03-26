@@ -272,6 +272,10 @@ services:
     env_file:
       - .env
       - .env.dev
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/firebase-credentials.json
+    volumes:
+      - ./firebase-credentials-wpp.json:/app/firebase-credentials.json:ro
     restart: unless-stopped
     networks:
       - emissor-network
@@ -350,6 +354,9 @@ services:
     env_file:
       - .env
       - .env.dev
+    environment:
+      WHATSAPP_API_URL: http://geral-bot-wpp-api.dev:8080
+      SEARCHFLIGHTS_API_URL: http://geral-search-flights.dev:8080/api/v1/search
     restart: unless-stopped
     networks:
       - emissor-network
@@ -357,6 +364,84 @@ services:
       - "8088:8080"
     depends_on:
       - db
+
+  # ──────────────────────────────────────────────────────────────────────
+  # CRM SERVICES
+  # ──────────────────────────────────────────────────────────────────────
+  crm_auth:
+    build:
+      context: ../crm/auth
+      dockerfile: Dockerfile
+    container_name: geral-crm-auth.dev
+    env_file:
+      - .env
+      - .env.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8013:8013"
+    depends_on:
+      - db
+
+  crm_gerenciamento_voos:
+    build:
+      context: ../crm/gerenciamento_voos
+      dockerfile: Dockerfile
+    container_name: geral-crm-gv.dev
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - ./secrets/starkbank:/app/starkbank:ro
+      - ./gcs-credentials.json:/app/gcs-credentials.json:ro
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8090:8080"
+    depends_on:
+      - db
+      - crm_auth
+
+  crm_templates_messages_api:
+    build:
+      context: ../crm/TemplatesMessagesApi
+      dockerfile: Dockerfile
+    container_name: geral-crm-templates.dev
+    env_file:
+      - .env
+      - .env.dev
+    volumes:
+      - ./gcs-credentials.json:/app/gcs-credentials.json:ro
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "8091:8000"
+    depends_on:
+      - db
+      - crm_auth
+
+  crm_front:
+    build:
+      context: ../crm/crm_front
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_GV_API: http://localhost:8090
+        REACT_APP_AGENTE_API_URL: http://localhost:8079
+        REACT_APP_MESSAGES_API_URL: http://localhost:8091
+        REACT_APP_MEMOSHAR_HOST: http://localhost:8081
+    container_name: geral-crm-front.dev
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    ports:
+      - "3001:80"
+    depends_on:
+      - crm_auth
+      - crm_gerenciamento_voos
+      - crm_templates_messages_api
 
   # ──────────────────────────────────────────────────────────────────────
   # LOCAL WHATSAPP REAL (opt-in: docker compose --profile local-wpp up)
