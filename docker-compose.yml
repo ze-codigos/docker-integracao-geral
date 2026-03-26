@@ -169,6 +169,16 @@ services:
     build:
       context: ../passhub/EmissorFront
       dockerfile: Dockerfile
+      args:
+        VITE_API_AUTH_URL: ${VITE_API_AUTH_URL}
+        VITE_API_EMISSOR_GERENCIA: ${VITE_API_EMISSOR_GERENCIA}
+        VITE_CVC_API_BASE_URL: ${VITE_CVC_API_BASE_URL}
+        VITE_VOO_API_BASE_URL: ${VITE_VOO_API_BASE_URL}
+        VITE_CHECKOUT_API_BASE_URL: ${VITE_CHECKOUT_API_BASE_URL}
+        VITE_CHECKOUT_WS_URL: ${VITE_CHECKOUT_WS_URL}
+        VITE_CHECKOUT_FRONT_URL: ${VITE_CHECKOUT_FRONT_URL}
+        VITE_NEXUS_API_BASE_URL: ${VITE_NEXUS_API_BASE_URL}
+        VITE_TICKET_DELIVERY_API_URL: ${VITE_TICKET_DELIVERY_API_URL}
     container_name: geral-emissor-front.dev
     env_file:
       - .env
@@ -347,6 +357,23 @@ services:
       - "8088:8080"
     depends_on:
       - db
+
+  # ──────────────────────────────────────────────────────────────────────
+  # LOCAL WHATSAPP REAL (opt-in: docker compose --profile local-wpp up)
+  # Requer wpp-dev-forwarder rodando no servidor de prod (34.68.95.239:8090)
+  # Veja: bot/wpp-dev-forwarder/ e docker-integracao-geral/start-dev-wpp.sh
+  # ──────────────────────────────────────────────────────────────────────
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: geral-cloudflared.dev
+    command: tunnel --no-autoupdate --url http://geral-bot-wpp-api.dev:8080
+    restart: unless-stopped
+    networks:
+      - emissor-network
+    depends_on:
+      - bot_wpp_api
+    profiles:
+      - local-wpp
 
 volumes:
   postgres_data:
