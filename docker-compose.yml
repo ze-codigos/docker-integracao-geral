@@ -446,9 +446,11 @@ services:
       - crm_templates_messages_api
 
   # ──────────────────────────────────────────────────────────────────────
-  # LOCAL WHATSAPP REAL (opt-in: docker compose --profile local-wpp up)
-  # Requer wpp-dev-forwarder rodando no servidor de prod (34.68.95.239:8090)
-  # Veja: bot/wpp-dev-forwarder/ e docker-integracao-geral/start-dev-wpp.sh
+  # CLOUDFLARE TUNNEL
+  # Expõe o bot_wpp_api para receber webhooks do WhatsApp.
+  # Sempre necessário — docker-integracao-geral é ambiente local.
+  # Requer wpp-dev-forwarder rodando em 34.68.95.239:8090
+  # Veja: bot/wpp-dev-forwarder/ e docker-integracao-geral/_register-tunnel.sh
   # ──────────────────────────────────────────────────────────────────────
   cloudflared:
     image: cloudflare/cloudflared:latest
@@ -459,8 +461,6 @@ services:
       - emissor-network
     depends_on:
       - bot_wpp_api
-    profiles:
-      - local-wpp
 
 volumes:
   postgres_data:
