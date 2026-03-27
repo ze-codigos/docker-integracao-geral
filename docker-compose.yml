@@ -380,7 +380,7 @@ services:
     networks:
       - emissor-network
     ports:
-      - "8013:8013"
+      - "8013:8080"
     depends_on:
       - db
 
@@ -432,6 +432,8 @@ services:
         REACT_APP_AGENTE_API_URL: http://localhost:8079
         REACT_APP_MESSAGES_API_URL: http://localhost:8091
         REACT_APP_MEMOSHAR_HOST: http://localhost:8081
+        REACT_APP_AUTH_API_URL: http://localhost:8013/api/v1
+        REACT_APP_WPP_URL: http://localhost:8080
     container_name: geral-crm-front.dev
     restart: unless-stopped
     networks:

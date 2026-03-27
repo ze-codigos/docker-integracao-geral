@@ -998,3 +998,41 @@ CREATE TABLE IF NOT EXISTS cupom_usage_history (
 CREATE INDEX IF NOT EXISTS idx_cupom_usage_history_cupom_codigo ON cupom_usage_history(cupom_codigo);
 CREATE INDEX IF NOT EXISTS idx_cupom_usage_history_telefone ON cupom_usage_history(telefone);
 CREATE INDEX IF NOT EXISTS idx_cupom_usage_history_data_uso ON cupom_usage_history(data_uso);
+
+-- ──────────────────────────────────────────────────────────────────────
+-- CRM AUTH TABLES (crm/auth service)
+-- ──────────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS roles (
+    id   SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id          SERIAL PRIMARY KEY,
+    username    VARCHAR(255) NOT NULL,
+    email       VARCHAR(255) NOT NULL UNIQUE,
+    password    VARCHAR(255),
+    auth_method VARCHAR(10)  NOT NULL DEFAULT 'email',
+    genero      INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS usuarios_roles (
+    usuarios_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    role_id     INTEGER NOT NULL REFERENCES roles(id)    ON DELETE CASCADE,
+    PRIMARY KEY (usuarios_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS verification_codes (
+    id         SERIAL PRIMARY KEY,
+    email      VARCHAR(255) NOT NULL,
+    username   VARCHAR(255) NOT NULL,
+    password   VARCHAR(255) NOT NULL,
+    code       VARCHAR(6)   NOT NULL,
+    code_type  VARCHAR(30),
+    expires_at TIMESTAMP    NOT NULL,
+    extra_data JSONB,
+    created_at TIMESTAMP    DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_verification_codes_email ON verification_codes(email);

@@ -118,3 +118,25 @@ SELECT 30, a.id_agencia, TRUE
 FROM tbe_agencia a
 WHERE a.nome = 'Agência Teste Local'
 ON CONFLICT DO NOTHING;
+
+-- ──────────────────────────────────────────────────────────────────────
+-- CRM AUTH SEED
+-- Senha padrão dev: passabot123 (bcrypt)
+-- ──────────────────────────────────────────────────────────────────────
+
+-- Roles
+INSERT INTO roles (name) VALUES ('admin'), ('manager') ON CONFLICT DO NOTHING;
+
+-- Usuários
+INSERT INTO usuarios (username, email, password, auth_method) VALUES
+    ('Esdras',       'esdras.carvalho@passabot.com',    '$2b$12$sJNdM5T3YltMcEWc7JKBvehqVpVT3i81RqkfxLaY3tdIf9dID2iX6', 'email'),
+    ('Fernadin',     'fernandin@passabot.teste.com',    '$2b$12$sJNdM5T3YltMcEWc7JKBvehqVpVT3i81RqkfxLaY3tdIf9dID2iX6', 'email'),
+    ('Wesley',       'wesleyalvescav@gmail.com',        '$2b$12$sJNdM5T3YltMcEWc7JKBvehqVpVT3i81RqkfxLaY3tdIf9dID2iX6', 'email'),
+    ('Mateus',       'mateusmoreirammp052@gmail.com',   '$2b$12$sJNdM5T3YltMcEWc7JKBvehqVpVT3i81RqkfxLaY3tdIf9dID2iX6', 'email'),
+    ('João Barreto', 'joao.barreto@passabot.com',       '$2b$12$sJNdM5T3YltMcEWc7JKBvehqVpVT3i81RqkfxLaY3tdIf9dID2iX6', 'email')
+ON CONFLICT DO NOTHING;
+
+-- Associar todos como admin (ambiente dev)
+INSERT INTO usuarios_roles (usuarios_id, role_id)
+SELECT u.id, r.id FROM usuarios u, roles r WHERE r.name = 'admin'
+ON CONFLICT DO NOTHING;
